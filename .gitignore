@@ -1,2 +1,5 @@
 # msbuild
 .vs
+.idea
+.iml
+out
