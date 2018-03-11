@@ -1,43 +1,51 @@
 #pragma once
 
+#define PROTOCOL_HEADER_LEN 8
+
 class ISSNetClient
 {
 public:
-	virtual ~ISSNetClient() = 0;
+	virtual ~ISSNetClient() {};
 
 	// 与服务端建立连接
-	virtual bool Connect(const char *host, int port) = 0;
+	virtual bool connect(const char *host, int port) = 0;
 
 	// 与服务器断开连接
-	virtual bool Close() = 0;
+	virtual bool close() = 0;
 
 	// 同步发送
-	virtual int Send(const char *buff, size_t len) = 0;
+	virtual int send(const char *buff, size_t len) = 0;
 
 	// 同步接受
-	virtual int Recv(char *buff, size_t len) = 0;
+	virtual int recv(char *buff, size_t len) = 0;
+
 
 	// 设置默认协议号
-	virtual void SetProtocol(char prot) = 0;
+	virtual void apply_protocol(char prot) = 0;
 
 	// 设置默认版本号
-	virtual void SetVersion(char ver) = 0;
+	virtual void apply_version(char ver) = 0;
 };
 
-typedef void(*RecvCallBack)(char *buff, int len);
+// 接收消息回掉函数
+// [type] 类型
+// [version] 版本号
+// [buff:len] 接收到的数据
+// [retBuff:retLen] 需要反馈的数据，最大长度（65536-8）字节
+typedef void(*RecvCallBack)(char type, char version, const char *buff, int len, char *retBuff, int* retLen);
 
 class ISSNetService
 {
 public:
-	virtual ~ISSNetService() = 0;
+	virtual ~ISSNetService() {};
+
+	// 初始化
+	virtual void init(RecvCallBack pfnRecvCallBack, unsigned short port) = 0;
 
 	// 启动服务
-	virtual void Start() = 0;
+	virtual void start() = 0;
 
 	// 关闭服务
-	virtual void Stop() = 0;
-
-	// 注册数据处理回掉
-	virtual void RegisterRecvCallBack(RecvCallBack pfnRecvCallBack) = 0;
+	virtual void stop() = 0;
 
 };
