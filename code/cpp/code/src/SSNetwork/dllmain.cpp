@@ -1,16 +1,20 @@
 #include "SSNetService.h"
 #include <iostream>
 
-void fnRecvCallBack(char type, char version, const char *buff, int len, char *retBuff, int* retLen)
+SSN_API ISSNetService *ssn_create_service()
 {
-	*retLen = len;
-	memcpy(retBuff, buff, *retLen);
-/*	printf("recv: %s\n", retBuff);*/
+	try {
+		auto service = new SSNetService;
+		return service;
+	} catch (const std::exception& err) {
+		std::cout << err.what() << std::endl;
+		return nullptr;
+	}
 }
 
-int main(int argc, char *argv[])
+SSN_API void ssn_destory_service(ISSNetService *service)
 {
-	SSNetService server;
-	server.init(fnRecvCallBack, 6688);
-	server.start();
+	if (service) {
+		delete service;
+	}
 }

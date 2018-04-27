@@ -9,4 +9,17 @@
 #
 # ----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.9)
+
+project(SSFormwork)
+
+if(MSVC)
+    include(script/msbuild.cmake)
+    # include(script/c_flag_overrides.cmake)
+endif()
+include(script/common.cmake)
+
+include_directories(include)
+include_directories(../third/include)
+# SSNetwork
+add_subdirectory(src/SSNetwork)
