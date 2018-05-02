@@ -11,7 +11,7 @@
 
 using asio::ip::tcp;
 
-using RecvCallBackFun = std::function<void(char ,char, const char *, int, char *, int *)>;
+using RecvCallBackFun = std::function<void(char, char, const char *, int, char *, int *)>;
 
 class session
 	: public std::enable_shared_from_this<session>
@@ -42,7 +42,7 @@ private:
 class server
 {
 public:
-	server(RecvCallBackFun pfnRecvCallBack, asio::io_service& io_service, short port);
+	server(RecvCallBackFun pfnRecvCallBack, asio::io_context& io_service, short port);
 
 private:
 	RecvCallBackFun m_pfnRecvCallBack;
@@ -68,7 +68,7 @@ public:
 	virtual void stop() override;
 
 private:
-	std::shared_ptr<asio::io_service> m_pServ;
+	std::shared_ptr<asio::io_context> m_pServ;
 
 	std::shared_ptr<server> m_s;
 };

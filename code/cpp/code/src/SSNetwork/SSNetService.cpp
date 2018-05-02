@@ -104,7 +104,7 @@ void session::_package_back(size_t len, char type, char version)
 		&msg_version, sizeof(msg_version));
 }
 
-server::server(RecvCallBackFun pfnRecvCallBack, asio::io_service& io_service, short port)
+server::server(RecvCallBackFun pfnRecvCallBack, asio::io_context& io_service, short port)
 	:m_pfnRecvCallBack(pfnRecvCallBack),
 	acceptor_(io_service, tcp::endpoint(tcp::v4(), port)),
 	socket_(io_service)
@@ -135,7 +135,7 @@ SSNetService::~SSNetService()
 
 void SSNetService::init(RecvCallBack pfnRecvCallBack, unsigned short port)
 {
-	m_pServ = std::make_shared<asio::io_service>(port);
+	m_pServ = std::make_shared<asio::io_context>(port);
 	m_s = std::make_shared<server>(pfnRecvCallBack, *m_pServ, 6688);
 }
 
