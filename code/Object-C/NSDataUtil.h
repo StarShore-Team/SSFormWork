@@ -13,4 +13,6 @@
 +(NSData *)createDataByPNG:(UIImage*)image;
 +(NSData *)createDataByJPG:(UIImage*)image;
 +(NSData *)createDataByFile:(NSString*)filePath;
++(NSData *)createDataByInt32:(int32_t)number;
++(int32_t)getInt32ByData:(NSData *)data;
 @end

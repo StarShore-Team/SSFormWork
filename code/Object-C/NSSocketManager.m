@@ -5,18 +5,23 @@
 //  Created by 阿杰 on 2018/4/2.
 //  Copyright © 2018年 阿杰. All rights reserved.
 //
-
+#import "NSMessageHead.h"
 #import "NSSocketManager.h"
 static NSSocketManager *manager;
-
+static NSInteger version;
 @implementation NSSocketManager{
-    BOOL isConnectSuccess,canSendMesssage,isInputStreamOpenSuccess,isOutputStreamOpenSuccess;
+    BOOL isConnectSuccess,canSendMesssage,isInputStreamOpenSuccess,isOutputStreamOpenSuccess,logOpen;
 }
 +(NSSocketManager *)manager{
     if (!manager) {
         manager = [[NSSocketManager alloc]init];
+        version = 0x01;
     }
     return manager;
+}
+
+-(void)openLog:(BOOL)isopen{
+    logOpen = isopen;
 }
 
 -(NSMutableArray *)chatMsgs{
@@ -31,8 +36,10 @@ static NSSocketManager *manager;
 }
 
 -(void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode{
-    
-    NSLog(@"%@",[NSThread currentThread]);
+    if (logOpen) {
+        NSLog(@"%@",[NSThread currentThread]);
+    }
+   
     
     //NSStreamEventOpenCompleted = 1UL << 0,//输入输出流打开完成//NSStreamEventHasBytesAvailable = 1UL << 1,//有字节可读//NSStreamEventHasSpaceAvailable = 1UL << 2,//可以发放字节//NSStreamEventErrorOccurred = 1UL << 3,//连接出现错误//NSStreamEventEndEncountered = 1UL << 4//连接结束
     
@@ -45,7 +52,10 @@ static NSSocketManager *manager;
                 isOutputStreamOpenSuccess = YES;
             }
             if (isInputStreamOpenSuccess && isOutputStreamOpenSuccess) {
-                NSLog(@"输入输出流打开完成");
+                if (logOpen) {
+                    NSLog(@"输入输出流打开完成");
+                }
+                
                 isConnectSuccess = YES;
                 if (self.delegate && [self.delegate respondsToSelector:@selector(onSocketConnectWithResult:)]) {
                     [self.delegate onSocketConnectWithResult:YES];
@@ -53,17 +63,22 @@ static NSSocketManager *manager;
             }
             break;
         case NSStreamEventHasBytesAvailable:
-            
-            NSLog(@"有字节可读");
-            
-            if (self.delegate && [self.delegate respondsToSelector:@selector(onSocketGetMessage:)]) {
-                [self.delegate onSocketGetMessage:[self readData]];
+            {if (logOpen) {
+                NSLog(@"有字节可读");
             }
-            break;
+            NSData * data =[self readData];
+            if ([NSMessageHead checkHeadByData:data]) {
+                if (self.delegate && [self.delegate respondsToSelector:@selector(onSocketGetMessage:)]) {
+                    [self.delegate onSocketGetMessage:[data subdataWithRange:NSMakeRange(8, data.length - 8)]];
+                }
+            }
+            break;}
             
         case NSStreamEventHasSpaceAvailable:
+            if (logOpen) {
+                NSLog(@"可以发送字节");
+            }
             
-            NSLog(@"可以发送字节");
             canSendMesssage = YES;
             if (self.delegate && [self.delegate respondsToSelector:@selector(onSocketCanSendMessage)]) {
                 [self.delegate onSocketCanSendMessage];
@@ -71,8 +86,10 @@ static NSSocketManager *manager;
             break;
             
         case NSStreamEventErrorOccurred:
+            if (logOpen) {
+                NSLog(@"连接出现错误");
+            }
             
-            NSLog(@"连接出现错误");
             if (aStream == self.inputStream) {
                 isInputStreamOpenSuccess = NO;
             }else if (aStream == self.outputStream){
@@ -85,8 +102,10 @@ static NSSocketManager *manager;
             break;
             
         case NSStreamEventEndEncountered:
+            if (logOpen) {
+                NSLog(@"连接结束");
+            }
             
-            NSLog(@"连接结束");
             isConnectSuccess = NO;
             canSendMesssage = NO;
             isInputStreamOpenSuccess = NO;
@@ -155,10 +174,10 @@ static NSSocketManager *manager;
 
 #pragma mark 读了服务器返回的数据
 
--(NSArray *)readData{
+-(NSData *)readData{
     
     //建立一个缓冲区 可以放1024个字节
-    NSMutableArray * msgs = [NSMutableArray array];
+    NSMutableData * msgs = [NSMutableData data];
     while ([self.inputStream hasBytesAvailable]) {
         uint8_t buf[1024];
         
@@ -171,22 +190,23 @@ static NSSocketManager *manager;
         NSData *data =[NSData dataWithBytes:buf length:len];
         
         //从服务器接收到的数据
-        
-        NSString *recStr =[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        [msgs addObject:recStr];
+        [msgs appendData:data];
     }
     return msgs;
 }
--(void)sendMessage:(NSString *)msg{
-    if (isConnectSuccess && canSendMesssage) {
-        NSLog(@"%@",msg);
-        //聊天信息
-        //把Str转成NSData10
-        NSData *data =[msg dataUsingEncoding:NSUTF8StringEncoding];
-        
+-(void)sendMessage:(NSData *)msg{
+    if (msg && isConnectSuccess && canSendMesssage) {
+        NSMessageHead * head = [[NSMessageHead alloc]init];
+        head.length = msg.length + 8;
+        head.type = 0x01;
+        head.version = version;
+        NSMutableData * data = [NSMutableData dataWithData:[head getHeadData]];
+        [data appendData:msg];
         [self.outputStream write:data.bytes maxLength:data.length];
     }else{
-        NSLog(@"Error:Connect has not connected");
+        if (logOpen) {
+            NSLog(@"Error:Connect has not connected");
+        }
     }
     
 }

@@ -15,11 +15,12 @@
 @property (nonatomic, strong) NSMutableArray *chatMsgs;//聊天消息数组
 +(NSSocketManager *)manager;
 -(void)connectToHost:(NSString *)host andPort:(int)port;
--(void)sendMessage:(NSString *)msg;
+-(void)sendMessage:(NSData *)msg;
+-(void)openLog:(BOOL)isopen;
 @end
 @protocol NSSocketDelegate<NSObject>
 -(void)onSocketConnectWithResult:(BOOL) isSuccess;
--(void)onSocketGetMessage:(NSArray*)messages;
+-(void)onSocketGetMessage:(NSData *)messages;
 -(void)onSocketCanSendMessage;
 -(void)onSocketCloseConnect;
 @end

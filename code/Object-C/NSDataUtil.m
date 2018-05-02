@@ -37,4 +37,13 @@
     NSData * data = [string dataUsingEncoding:NSUTF8StringEncoding];
     return data;
 }
+
++ (NSData *)createDataByInt32:(int32_t)number{
+    return [NSData dataWithBytes:&number length:sizeof(number)];
+}
++(int32_t)getInt32ByData:(NSData *)data{
+    int32_t bytes;
+    [data getBytes:&bytes length:sizeof(bytes)];
+    return bytes;
+}
 @end
