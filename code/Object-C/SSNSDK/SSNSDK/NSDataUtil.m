@@ -39,7 +39,20 @@
     NSData * data = [string dataUsingEncoding:NSUTF8StringEncoding];
     return data;
 }
-
++ (NSData *)createDataByString:(NSString *)string andLength:(NSInteger)len{
+    NSData * data = [string dataUsingEncoding:NSUTF8StringEncoding];
+    if (data.length >len) {
+        return [NSData dataWithBytes:[data subdataWithRange:NSMakeRange(0, len)].bytes length:len];
+    }else{
+        NSMutableData * tmpData = [NSMutableData dataWithData:data];
+        Byte * bytes = alloca(sizeof(Byte) * len);
+        for (int i = 0; i<len; i++) {
+            bytes[i] = 0;
+        }
+        [tmpData appendData:[NSData dataWithBytes:bytes length:len - data.length]];
+        return [NSData dataWithData:tmpData];
+    }
+}
 + (NSData *)createDataByInt32:(int32_t)number{
     return [NSData dataWithBytes:&number length:sizeof(number)];
 }
