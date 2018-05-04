@@ -40,6 +40,13 @@
     return data;
 }
 + (NSData *)createDataByString:(NSString *)string andLength:(NSInteger)len{
+    if (string == nil) {
+        Byte * bytes = alloca(sizeof(Byte) * len);
+        for (int i = 0; i<len; i++) {
+            bytes[i] = 0;
+        }
+        return [NSData dataWithBytes:bytes length:len];
+    }
     NSData * data = [string dataUsingEncoding:NSUTF8StringEncoding];
     if (data.length >len) {
         return [NSData dataWithBytes:[data subdataWithRange:NSMakeRange(0, len)].bytes length:len];
@@ -60,5 +67,20 @@
     int32_t bytes;
     [data getBytes:&bytes length:sizeof(bytes)];
     return bytes;
+}
+
++(NSString *)getStringByData:(NSData *)data{
+    Byte * bytes = alloca(sizeof(Byte) * data.length);
+    [data getBytes:bytes length:data.length];
+    NSInteger i = data.length - 1;
+    for (; i >= 0; i--) {
+        if (bytes[i] != 0) {
+            break;
+        }
+    }
+    if (i == -1) {
+        return nil;
+    }
+    return [[NSString alloc]initWithBytes:bytes length:i + 1 encoding:NSUTF8StringEncoding];
 }
 @end

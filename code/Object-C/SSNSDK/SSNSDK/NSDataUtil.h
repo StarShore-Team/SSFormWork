@@ -16,4 +16,5 @@
 +(NSData *)createDataByFile:(NSString*)filePath;
 +(NSData *)createDataByInt32:(int32_t)number;
 +(int32_t)getInt32ByData:(NSData *)data;
++(NSString *)getStringByData:(NSData *)data;
 @end
